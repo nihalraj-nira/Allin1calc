@@ -1,7 +1,4 @@
 out/
 *.class
-work/
-rendered/
-Allin1Calc-Project-Report.docx
-~$*.docx
-
+.idea/
+.vscode/

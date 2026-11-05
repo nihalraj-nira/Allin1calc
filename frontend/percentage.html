@@ -1,1 +1,67 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Percentage Calculator | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Student tools</div><h1>Percentage Calculator</h1><p>Choose one of six common percentage operations and enter its two values.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/percentage" data-method="POST"><div class="field"><label for="operation">Operation</label><select id="operation" name="operation" required><option value="percent_of">Find a% of b</option><option value="what_percent">Find what percent a is of b</option><option value="find_whole">Find the whole when a is b%</option><option value="change">Percentage change from a to b</option><option value="increase">Increase a by b%</option><option value="decrease">Decrease a by b%</option></select></div><div class="field"><label for="a">First value (a)</label><input id="a" name="a" type="number" step="any" required></div><div class="field"><label for="b">Second value (b)</label><input id="b" name="b" type="number" step="any" required></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Percentage Calculator | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Percentage Calculator</h2>
+      <p class="muted">Find a percentage, recover a whole value, or calculate a percentage change.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_operation">What do you want to find?</label><select id="f_operation" name="operation"><option value="percent-of">X% of Y</option><option value="what-percent">X is what % of Y</option><option value="find-whole">Find whole from X and Y%</option><option value="increase">Increase Y by X%</option><option value="decrease">Decrease Y by X%</option><option value="change">% change from X to Y</option></select></div>
+        <div class="field"><label for="f_a">Percentage (X)</label><input id="f_a" name="a" type="text" value="20" inputmode="decimal" autocomplete="off"></div>
+        <div class="field"><label for="f_b">Number (Y)</label><input id="f_b" name="b" type="text" value="50" inputmode="decimal" autocomplete="off"></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    // [label for X, label for Y, description, is the answer a percentage?]
+    const OPS = {
+      "percent-of": ["Percentage (X)", "Number (Y)", (a, b) => `${a}% of ${b}`, false],
+      "what-percent": ["Part (X)", "Whole (Y)", (a, b) => `${a} is what % of ${b}`, true],
+      "find-whole": ["Part (X)", "Percentage (Y)", (a, b) => `Find the whole when ${a} is ${b}%`, false],
+      increase: ["Percentage (X)", "Number (Y)", (a, b) => `${b} increased by ${a}%`, false],
+      decrease: ["Percentage (X)", "Number (Y)", (a, b) => `${b} decreased by ${a}%`, false],
+      change: ["Old value (X)", "New value (Y)", (a, b) => `Change from ${a} to ${b}`, true],
+    };
+    Calc.init({
+      init(form) {
+        const sync = () => {
+          const op = OPS[$("#f_operation").value];
+          $("label[for=f_a]").textContent = op[0];
+          $("label[for=f_b]").textContent = op[1];
+        };
+        $("#f_operation").addEventListener("change", sync);
+        form.addEventListener("reset", () => setTimeout(sync, 0));
+        sync();
+      },
+      async run(v) {
+        const d = await api("/api/percentage", { operation: v.operation, a: v.a, b: v.b });
+        const op = OPS[v.operation];
+        return {
+          caption: op[2](v.a, v.b),
+          headline: `${num(d.result, 4)}${op[3] ? "%" : ""}`,
+          rows: [],
+          input: op[2](v.a, v.b),
+        };
+      },
+    });
+  </script>
+</body>
+</html>

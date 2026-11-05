@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Allin1Calc calculator mark</title>
+  <rect width="64" height="64" rx="18" fill="#F2A541"/>
+  <rect x="12" y="8" width="40" height="48" rx="10" fill="#12343B"/>
+  <rect x="18" y="14" width="28" height="10" rx="3" fill="#E9F4F2"/>
+  <circle cx="22" cy="33" r="3" fill="#F2A541"/>
+  <circle cx="32" cy="33" r="3" fill="#F2A541"/>
+  <circle cx="42" cy="33" r="3" fill="#F2A541"/>
+  <circle cx="22" cy="44" r="3" fill="#F2A541"/>
+  <circle cx="32" cy="44" r="3" fill="#F2A541"/>
+  <path d="M39 44h6" stroke="#F2A541" stroke-width="4" stroke-linecap="round"/>
+</svg>

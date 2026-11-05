@@ -1,1 +1,73 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Unit Converter | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Units</div><h1>Unit Converter</h1><p>Convert length, weight, temperature, speed, data size, and time units.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/convert" data-method="POST" data-units="true"><div class="field"><label for="value">Value</label><input id="value" name="value" type="number" step="any" required></div><div class="field"><label for="category">Category</label><select id="category" name="category" required><option value="length">length</option><option value="weight">weight</option><option value="temperature">temperature</option><option value="speed">speed</option><option value="data size">data size</option><option value="time">time</option></select></div><div class="field"><label for="from">From unit</label><select id="from" name="from" required></select></div><div class="field"><label for="to">To unit</label><select id="to" name="to" required></select></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unit Converter | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Unit Converter</h2>
+      <p class="muted">Length, weight, temperature, speed, data size and time.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_category">Category</label><select id="f_category" name="category"></select></div>
+        <div class="field"><label for="f_value">Value</label><input id="f_value" name="value" type="text" value="1" inputmode="decimal" autocomplete="off"></div>
+        <div class="field"><label for="f_from">From</label><select id="f_from" name="from"></select></div>
+        <div class="field"><label for="f_to">To</label><select id="f_to" name="to"></select></div>
+        <div class="field"><label for="f_decimals">Decimal places</label><select id="f_decimals" name="decimals"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option></select></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+          <button type="button" class="ghost" id="swapBtn">Swap units</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async init(form) {
+        const data = await loadUnits();
+        const category = $("#f_category");
+        category.innerHTML = data.categories.map((c) => `<option value="${esc(c.category)}">${esc(c.name)}</option>`).join("");
+        const fill = () => {
+          const cat = data.categories.find((c) => c.category === category.value);
+          const options = cat.units.map((u) => `<option value="${esc(u)}">${esc(u)}</option>`).join("");
+          $("#f_from").innerHTML = options;
+          $("#f_to").innerHTML = options;
+          $("#f_to").selectedIndex = Math.min(1, cat.units.length - 1);
+        };
+        category.addEventListener("change", fill);
+        form.addEventListener("reset", () => setTimeout(fill, 0));
+        fill();
+        $("#swapBtn").addEventListener("click", () => {
+          const from = $("#f_from");
+          const to = $("#f_to");
+          [from.value, to.value] = [to.value, from.value];
+        });
+      },
+      async run(v) {
+        const d = await api("/api/convert", { category: v.category, from: v.from, to: v.to, value: v.value });
+        const decimals = Number(v.decimals);
+        const rounded = Math.round(d.result * 10 ** decimals) / 10 ** decimals;
+        const shown = rounded === 0 && d.result !== 0 ? d.result.toExponential(4) : num(rounded, decimals);
+        return {
+          caption: d.category,
+          headline: `${num(d.value, 6)} ${d.from} = ${shown} ${d.to}`,
+          rows: [],
+          input: `${num(d.value, 6)} ${d.from} to ${d.to}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

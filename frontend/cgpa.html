@@ -1,1 +1,47 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CGPA to Percentage | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Student tools</div><h1>CGPA to Percentage</h1><p>Convert CGPA using a configurable multiplier. The default multiplier is 9.5; check your college rule before using it.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/cgpa" data-method="POST"><div class="field"><label for="cgpa">CGPA (0 to 10)</label><input id="cgpa" name="cgpa" type="number" step="any" required></div><div class="field"><label for="multiplier">College multiplier</label><input id="multiplier" name="multiplier" type="number" step="any" value="9.5" required></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CGPA to Percentage | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>CGPA to Percentage</h2>
+      <p class="muted">Convert your CGPA to a percentage with a multiplier you can change.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_cgpa">CGPA</label><input id="f_cgpa" name="cgpa" type="text" value="7.5" inputmode="decimal" autocomplete="off"></div>
+        <div class="field"><label for="f_multiplier">Multiplier</label><input id="f_multiplier" name="multiplier" type="text" value="9.5" inputmode="decimal" autocomplete="off"><div class="hint">Check your college&#x27;s official formula</div></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async run(v) {
+        const d = await api("/api/cgpa", { cgpa: v.cgpa, multiplier: v.multiplier || undefined });
+        return {
+          caption: `CGPA ${d.cgpa} x ${d.multiplier}`,
+          headline: `${num(d.percentage, 2)}%`,
+          rows: [],
+          note: "Different institutions use different formulas, so confirm with your own college.",
+          input: `CGPA ${d.cgpa}, multiplier ${d.multiplier}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

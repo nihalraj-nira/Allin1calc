@@ -1,10 +1,109 @@
-import java.time.*;import java.time.format.*;import java.util.*;
-public final class TimeCalculator {
- private static int parseHm(String s){if(s==null||!s.matches("(?:[0-9]{1,3}):[0-5][0-9]"))throw new IllegalArgumentException("Enter time as HH:MM.");String[]p=s.split(":");return Math.addExact(Math.multiplyExact(Integer.parseInt(p[0]),60),Integer.parseInt(p[1]));}
- private static String fmt(long total){long h=Math.floorDiv(total,60),m=Math.floorMod(total,60);return String.format(Locale.ROOT,"%02d:%02d",h,m);}
- public static Map<String,Object> calc(String a,String b,String op){int x=parseHm(a),y=parseHm(b);long total=op.equalsIgnoreCase("subtract")?(long)x-y:(long)x+y;Map<String,Object>r=new LinkedHashMap<>();r.put("time",fmt(total));r.put("totalMinutes",total);return r;}
- public static Map<String,Object> hoursWorked(String start,String end){int a=parseHm(start),b=parseHm(end);if(b<a)b+=1440;int mins=b-a;Map<String,Object>r=new LinkedHashMap<>();r.put("hours",mins/60);r.put("minutes",mins%60);r.put("duration",fmt(mins));r.put("overnight",b>=1440);return r;}
- public static Map<String,Object> countdown(String target){try{LocalDateTime t=LocalDateTime.parse(target);long sec=Duration.between(LocalDateTime.now(),t).getSeconds();sec=Math.max(0,sec);Map<String,Object>r=new LinkedHashMap<>();r.put("seconds",sec);r.put("days",sec/86400);r.put("hours",(sec%86400)/3600);r.put("minutes",(sec%3600)/60);r.put("remainingSeconds",sec%60);return r;}catch(DateTimeParseException e){throw new IllegalArgumentException("Choose a valid target date and time.");}}
- public static void main(String[]args){System.out.println(Json.stringify(calc(args.length>0?args[0]:"01:30",args.length>1?args[1]:"02:15","add")));}
-}
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Locale;
 
+/** Time calculator, hours worked and countdown. Run it alone with:  java -cp out TimeCalculator */
+public class TimeCalculator {
+
+    public Duration add(Duration a, Duration b) {
+        return a.plus(b);
+    }
+
+    public Duration subtract(Duration a, Duration b) {
+        if (b.compareTo(a) > 0) {
+            throw Validator.fail("The second time is larger, so the result would be negative.");
+        }
+        return a.minus(b);
+    }
+
+    /** Time worked between two clock times minus a break. If the end is before the start, an overnight shift is assumed. */
+    public Duration hoursWorked(LocalTime start, LocalTime end, Duration breakTime) {
+        Duration span = Duration.between(start, end);
+        if (span.isNegative()) {
+            span = span.plusHours(24);
+        }
+        if (breakTime.compareTo(span) > 0) {
+            throw Validator.fail("Break is longer than the time worked.");
+        }
+        return span.minus(breakTime);
+    }
+
+    public boolean isOvernight(LocalTime start, LocalTime end) {
+        return end.isBefore(start);
+    }
+
+    /** Time left until the event; negative if the event is already in the past. */
+    public Duration countdown(LocalDateTime event, LocalDateTime now) {
+        return Duration.between(now, event);
+    }
+
+    public static String formatHm(Duration d) {
+        return String.format("%02d:%02d", d.toHours(), d.toMinutesPart());
+    }
+
+    public static double decimalHours(Duration d) {
+        return d.toMinutes() / 60.0;
+    }
+
+    // ---------- Text version ----------
+
+    public static void main(String[] args) {
+        TimeCalculator calc = new TimeCalculator();
+        System.out.println("=== Time Calculator (text version) ===");
+        while (true) {
+            System.out.println();
+            System.out.println("  1  Time calculator (add / subtract)");
+            System.out.println("  2  Hours worked");
+            System.out.println("  3  Countdown");
+            System.out.println("  0  Exit");
+            String choice = Validator.ask("Choose an option");
+            try {
+                switch (choice) {
+                    case "0" -> {
+                        System.out.println("Bye!");
+                        return;
+                    }
+                    case "1" -> {
+                        Duration a = Validator.parseDuration(Validator.ask("First time (HH:MM)"));
+                        Duration b = Validator.parseDuration(Validator.ask("Second time (HH:MM)"));
+                        String op = Validator.ask("Add or subtract").toLowerCase(Locale.ROOT);
+                        if (!op.startsWith("a") && !op.startsWith("s")) {
+                            throw Validator.fail("Type add or subtract.");
+                        }
+                        Duration r = op.startsWith("a") ? calc.add(a, b) : calc.subtract(a, b);
+                        System.out.println();
+                        System.out.println("  Result : " + formatHm(r) + " (" + r.toHours() + " hours " + r.toMinutesPart() + " minutes)");
+                    }
+                    case "2" -> {
+                        LocalTime start = Validator.parseTime(Validator.ask("Start time (HH:MM, 24-hour)"));
+                        LocalTime end = Validator.parseTime(Validator.ask("End time (HH:MM, 24-hour)"));
+                        String brk = Validator.ask("Break (HH:MM, press Enter for none)");
+                        Duration worked = calc.hoursWorked(start, end, brk.isEmpty() ? Duration.ZERO : Validator.parseDuration(brk));
+                        System.out.println();
+                        System.out.println("  Total working time : " + worked.toHours() + " hours " + worked.toMinutesPart() + " minutes ("
+                                + Validator.round(decimalHours(worked), 2) + " hours)");
+                        if (calc.isOvernight(start, end)) {
+                            System.out.println("  (End time is before start time, so an overnight shift was assumed.)");
+                        }
+                    }
+                    case "3" -> {
+                        LocalDate date = Validator.askDate("Event date");
+                        LocalTime time = Validator.parseTime(Validator.ask("Event time (HH:MM, 24-hour)"));
+                        Duration left = calc.countdown(LocalDateTime.of(date, time), LocalDateTime.now());
+                        if (left.isNegative() || left.isZero()) {
+                            throw Validator.fail("That date and time has already passed.");
+                        }
+                        System.out.println();
+                        System.out.println("  Time left : " + left.toDays() + " days, " + left.toHoursPart() + " hours, "
+                                + left.toMinutesPart() + " minutes, " + left.toSecondsPart() + " seconds");
+                    }
+                    default -> System.out.println("  Please choose 0, 1, 2 or 3.");
+                }
+            } catch (Validator.InvalidInputException e) {
+                System.out.println("  Error: " + e.getMessage());
+            }
+        }
+    }
+}

@@ -2,85 +2,110 @@
 
 **One App. Every Calculation.**
 
-Allin1Calc is a free, responsive web application for everyday calculations used by students. It includes 15 calculators for age, dates, time, units, attendance, percentages, averages, and CGPA conversion. The browser uses plain HTML, CSS, and JavaScript; a Java 17 backend performs the calculations.
+Allin1Calc is a free, student-first web app for everyday age, date, time, unit, and academic calculations. Each calculator has its own browser page. Java performs the calculations and returns JSON to the pages.
+
+## V1 calculator set
+
+| Group | Calculators |
+|---|---|
+| Age and date | Age Calculator, Age Difference, Date Difference, Add or Subtract Date, Workdays Counter, Leap Year Checker |
+| Time | Time Calculator, Hours Worked, Countdown |
+| Units | Unit Converter for length, weight, temperature, speed, data size, and time |
+| Student tools | Attendance Calculator, Bunk Planner, Percentage Calculator, Average Calculator, CGPA to Percentage |
+
+The Percentage Calculator supports six operations: find a percent of a number, find what percent one value is of another, find a whole from a part and percent, percentage change, increase by a percent, and decrease by a percent.
+
+Other V1 features include input validation, clear error messages, copy result, light and dark themes, responsive pages, and calculation history saved in the current browser with `localStorage`. The bunk planner can show attendance projections for planned absences. No login or database is used.
+
+The interface follows the project’s teal-and-amber design and uses a custom calculator mark as the app logo and browser icon. Calculator links, form controls, and result cards share the same visual style across desktop and mobile layouts.
+
+## Technology
+
+- Java 17 and `java.time`
+- JDK built-in `HttpServer`
+- Small in-project `Json.java` parser and serializer
+- HTML5, CSS3, JavaScript, and Fetch API
+- Browser `localStorage`
+- Dockerfile for a future hosting build
+
+The project uses no framework, Maven, or external Java libraries.
 
 ## Run locally
 
-Install JDK 17 or later. From this folder, compile and run:
+Install JDK 17 or later, then open a terminal in the `Allin1Calc` folder:
 
 ```text
 javac -d out *.java backend/*.java
 java -cp out Server
 ```
 
-Open `http://localhost:8080` in a browser. To use a different port, pass it to the server, for example `java -cp out Server 9090`, or set the `PORT` environment variable (used by hosting platforms).
+Open `http://localhost:8080`. If the browser does not open automatically, enter the address yourself. To use a different port, set the `PORT` environment variable before starting the server.
 
-Each calculator class also has a small command-line example. After compiling, run a class from the `backend` package directory as a standalone class, for example:
+Each calculator module also includes a text version that can run on its own after compilation:
 
 ```text
 java -cp out AgeCalculator
+java -cp out DateCalculator
+java -cp out TimeCalculator
+java -cp out UnitConverter
+java -cp out AttendanceCalculator
+java -cp out PercentageCalculator
+java -cp out AverageCalculator
+java -cp out CgpaCalculator
 ```
 
-## Calculator list
+Dates use `yyyy-MM-dd` in the browser fields and text version; times use `HH:MM` where a time-only value is expected.
 
-**Age and date:** Age Calculator, Age Difference, Date Difference, Add or Subtract Date, Workdays Counter, Leap Year Checker.
+## API routes
 
-**Time:** Time Calculator, Hours Worked, Countdown.
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/health` | Health and version |
+| GET | `/api/units` | Unit categories and supported units |
+| GET | `/api/leap?year=2024` | Check one year |
+| GET | `/api/leap?from=2020&to=2030` | List leap years in a range |
+| POST | `/api/age` | Age calculation |
+| POST | `/api/age/difference` | Age difference |
+| POST | `/api/date/difference` | Date difference |
+| POST | `/api/date/add` | Add or subtract a date interval |
+| POST | `/api/date/workdays` | Weekdays in a date range |
+| POST | `/api/time/calc` | Add or subtract HH:MM values |
+| POST | `/api/time/hours-worked` | Worked duration, including overnight shifts |
+| POST | `/api/time/countdown` | Remaining time to a target |
+| POST | `/api/convert` | Unit conversion |
+| POST | `/api/attendance` | Attendance and planning results |
+| POST | `/api/percentage` | Percentage operation |
+| POST | `/api/average` | Arithmetic average |
+| POST | `/api/cgpa` | CGPA conversion |
 
-**Units:** Unit Converter for length, weight, temperature, speed, data size, and time.
+Invalid requests return HTTP 400 with a JSON error message.
 
-**Student tools:** Attendance Calculator, Bunk Planner, Percentage Calculator, Average Calculator, and CGPA to Percentage.
+## Quality and security
 
-The percentage operations are: find a percent of a value; find what percent one value is of another; find a whole from a part and percentage; percentage change; increase by a percentage; and decrease by a percentage.
+The server limits request bodies to 100 KB and numeric text fields to 40 characters. It validates dates from years 1 to 9999 and rejects invalid ranges and arithmetic overflow. Static serving is restricted to the frontend folder, and path traversal is blocked. Responses include Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, and Referrer-Policy headers. CORS is off by default. API rate limiting defaults to 120 requests per minute per client and can be configured with `RATE_LIMIT_PER_MIN`.
 
-## Architecture
+Calculation history stays in the current browser profile. It is not sent to a user account or synchronized to a server.
+
+## Tests and release status
+
+The supplied `tests/AllTests.java` contains 130 plain-Java checks for calculation logic, invalid input, API behavior, security rules, and frontend links. The project brief records standalone runs for the calculator classes and browser checks for the pages. The current interface and percentage-operation edits have not been rechecked against that suite, so rerun it before release.
+
+The supplied project brief lists GitHub publication, Render deployment, Docker image build, and real-phone testing as pending. Update the project link and hosting status after those steps are completed. A free hosting service may sleep after inactivity. Workdays exclude public holidays, and the CGPA multiplier depends on each college's rule.
+
+## Project structure
 
 ```text
-Browser page (HTML/CSS/JavaScript)
-        | Fetch API with JSON
-        v
-Server.java -> Validator.java -> calculator class in backend/
-        | JSON result or clear error
-        v
-Browser result, copy action, and local history
+Allin1Calc/
+├── Server.java
+├── Json.java
+├── Validator.java
+├── backend/        Eight modular Java calculation files
+├── frontend/       Home page, 15 calculator pages, history, shared CSS and JavaScript
+├── tests/          AllTests.java
+├── Dockerfile
+└── README.md
 ```
 
-The server uses the JDK built-in `HttpServer`. `Json.java` is a small in-project JSON parser and serializer. There is no framework, Maven, external Java library, database, login, or cloud history. Calculation history is held in the current browser's `localStorage`.
+## Future scope
 
-## API
-
-GET routes: `/api/health`, `/api/units`, `/api/leap?year=2024`, and `/api/leap?from=2020&to=2030`.
-
-POST routes: `/api/age`, `/api/age/difference`, `/api/date/difference`, `/api/date/add`, `/api/date/workdays`, `/api/time/calc`, `/api/time/hours-worked`, `/api/time/countdown`, `/api/convert`, `/api/attendance`, `/api/percentage`, `/api/average`, and `/api/cgpa`.
-
-Invalid values return HTTP 400 with a JSON `error` message. Request bodies are limited to 100 KB. Per-client API rate limiting defaults to 120 requests per minute and can be changed with `RATE_LIMIT_PER_MIN`.
-
-## Key rules and limitations
-
-- Age uses `java.time.Period`; dates must be valid and within years 1 to 9999.
-- Workdays count Monday through Friday, include both endpoints, and do not remove public holidays.
-- Attendance target defaults to 75% in the API. The browser asks for the target explicitly. Classes needed are rounded up; safe bunks are rounded down.
-- CGPA conversion uses `CGPA × multiplier`; the default is 9.5. The multiplier should match the college's rule.
-- Unit conversion supports mm, cm, m, km, inches, feet, yards, miles; mg, g, kg, tonnes, pounds, ounces; Celsius, Fahrenheit, Kelvin; m/s, km/h, mph; decimal and binary data sizes; and milliseconds through days.
-- History belongs to one browser and is not synchronized. There are no accounts.
-
-## Docker hosting
-
-The app is deployed on Render using the Dockerfile. The free service may sleep when idle. A local Docker build was not run because Docker CLI is not installed in the preparation environment.
-
-```text
-docker build -t allin1calc .
-docker run -p 8080:8080 allin1calc
-```
-
-## Published links
-
-- GitHub: https://github.com/nihalraj-nira/Allin1calc
-- Live app: https://allin1calc.onrender.com
-
-Real-phone testing remains pending.
-
-## Verification status
-
-The Java source compiled successfully with the command above during preparation of this package. The supplied project brief lists `tests/AllTests.java` and 130 checks, but that test source was not included in this generated package and the checks were not run here. The report describes this limitation.
-
+V2 ideas are a scientific calculator, statistics, number systems, matrices, equation solving, and geometry. V3 ideas are MySQL/JDBC, user accounts, cloud history, a mobile app, an AI assistant while keeping the calculation engine deterministic, finance and currency tools, and security upgrades. These ideas are not part of V1.

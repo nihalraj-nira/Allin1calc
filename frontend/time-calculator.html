@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time Calculator | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Time Calculator</h2>
+      <p class="muted">Add or subtract two times written as HH:MM.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_a">First time (HH:MM)</label><input id="f_a" name="a" type="text" value="02:45" inputmode="text" autocomplete="off" placeholder="02:45"></div>
+        <div class="field"><label for="f_operation">Operation</label><select id="f_operation" name="operation"><option value="add">Add</option><option value="subtract">Subtract</option></select></div>
+        <div class="field"><label for="f_b">Second time (HH:MM)</label><input id="f_b" name="b" type="text" value="03:30" inputmode="text" autocomplete="off" placeholder="03:30"></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async run(v) {
+        const d = await api("/api/time/calc", { a: v.a, b: v.b, operation: v.operation });
+        const sign = v.operation === "add" ? "+" : "-";
+        return {
+          caption: `${v.a} ${sign} ${v.b}`,
+          headline: d.result,
+          rows: [["In words", `${plural(d.hours, "hour")} ${plural(d.minutes, "minute")}`], ["Total minutes", num(d.totalMinutes, 0)]],
+          input: `${v.a} ${sign} ${v.b}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

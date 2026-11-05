@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add / Subtract Date | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Add / Subtract Date</h2>
+      <p class="muted">Add or subtract days, weeks, months or years from a date.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_date">Date</label><input id="f_date" name="date" type="date" value="" data-default="today"></div>
+        <div class="field"><label for="f_operation">Operation</label><select id="f_operation" name="operation"><option value="add">Add</option><option value="subtract">Subtract</option></select></div>
+        <div class="field"><label for="f_amount">Number</label><input id="f_amount" name="amount" type="text" value="30" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_unit">Unit</label><select id="f_unit" name="unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months">Months</option><option value="years">Years</option></select></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async run(v) {
+        const d = await api("/api/date/add", { date: v.date, amount: v.amount, unit: v.unit, operation: v.operation });
+        const sign = v.operation === "add" ? "+" : "-";
+        return {
+          caption: `${dmy(v.date)} ${sign} ${v.amount} ${v.unit}`,
+          headline: dmy(d.result),
+          rows: [["Weekday", d.weekday]],
+          input: `${dmy(v.date)} ${sign} ${v.amount} ${v.unit}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

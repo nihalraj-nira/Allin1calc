@@ -1,1 +1,49 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hours Worked | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Time</div><h1>Hours Worked</h1><p>Calculate shift duration from start and end time. If the end is earlier, it is treated as an overnight shift.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/time/hours-worked" data-method="POST"><div class="field"><label for="start">Start time (HH:MM)</label><input id="start" name="start" type="text" required></div><div class="field"><label for="end">End time (HH:MM)</label><input id="end" name="end" type="text" required></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hours Worked | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Hours Worked</h2>
+      <p class="muted">Total working time between a start and an end time, minus a break.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_start">Start time</label><input id="f_start" name="start" type="time" value="09:30"></div>
+        <div class="field"><label for="f_end">End time</label><input id="f_end" name="end" type="time" value="17:30"></div>
+        <div class="field"><label for="f_brk">Break (HH:MM)</label><input id="f_brk" name="brk" type="text" value="01:00" inputmode="text" autocomplete="off"><div class="hint">Leave empty for no break</div></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async run(v) {
+        const brk = (v.brk || "").trim();
+        const d = await api("/api/time/hours-worked", { start: v.start, end: v.end, break: brk || undefined });
+        return {
+          caption: "Total working time",
+          headline: `${plural(d.hours, "hour")} ${plural(d.minutes, "minute")}`,
+          rows: [["As decimal hours", num(d.decimalHours, 2)]],
+          note: d.overnight ? "The end time is before the start time, so an overnight shift was assumed." : "",
+          input: `${v.start} to ${v.end}, break ${brk || "none"}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

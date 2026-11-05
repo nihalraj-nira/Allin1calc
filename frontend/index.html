@@ -1,2 +1,83 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Everyday student calculations in one place."><title>Allin1Calc | One App. Every Calculation.</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Version 1.0 · Student calculator toolkit</div><h1>One App. Every Calculation.</h1><p>Everyday age, date, time, unit, and student calculations in one place. Choose a tool to get started.</p></section><div class="group-label">Age and date</div><div class="tool-grid"><a class="tool-link" href="/age.html"><strong>Age Calculator</strong><span>Age on a selected date</span></a><a class="tool-link" href="/age-difference.html"><strong>Age Difference</strong><span>Compare two dates of birth</span></a><a class="tool-link" href="/date-difference.html"><strong>Date Difference</strong><span>Days and weeks between dates</span></a><a class="tool-link" href="/date-add.html"><strong>Add or Subtract Date</strong><span>Move a date by days to years</span></a><a class="tool-link" href="/workdays.html"><strong>Workdays Counter</strong><span>Count weekdays in a range</span></a><a class="tool-link" href="/leap-year.html"><strong>Leap Year Checker</strong><span>Check one year or a range</span></a></div><div class="group-label">Time</div><div class="tool-grid"><a class="tool-link" href="/time-calc.html"><strong>Time Calculator</strong><span>Add or subtract HH:MM values</span></a><a class="tool-link" href="/hours-worked.html"><strong>Hours Worked</strong><span>Calculate a shift including overnight</span></a><a class="tool-link" href="/countdown.html"><strong>Countdown</strong><span>Count down to a date and time</span></a></div><div class="group-label">Units</div><div class="tool-grid"><a class="tool-link" href="/unit-converter.html"><strong>Unit Converter</strong><span>Length, weight, temperature, speed, data, time</span></a></div><div class="group-label">Student tools</div><div class="tool-grid"><a class="tool-link" href="/attendance.html"><strong>Attendance Calculator</strong><span>Attendance percentage and classes needed</span></a><a class="tool-link" href="/bunk-planner.html"><strong>Bunk Planner</strong><span>Plan safe absences against a target</span></a><a class="tool-link" href="/percentage.html"><strong>Percentage Calculator</strong><span>Six common percentage operations</span></a><a class="tool-link" href="/average.html"><strong>Average Calculator</strong><span>Calculate the arithmetic average</span></a><a class="tool-link" href="/cgpa.html"><strong>CGPA to Percentage</strong><span>Use a configurable multiplier</span></a></div></main><footer>Allin1Calc Version 1.0 · Calculations run on the Java backend</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Allin1Calc brings 15 everyday and student calculations into one simple web app.">
+  <title>Allin1Calc | One App. Every Calculation.</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap home">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="hero-kicker">Version 1.0 · Student calculator toolkit</p>
+        <h1 id="hero-title">One App.<br>Every Calculation.</h1>
+        <p>Age, dates, time, units and student tools in one place. Choose a calculator and get a clear result from the Java backend.</p>
+        <div class="hero-actions">
+          <a class="hero-cta" href="attendance.html">Open student tools</a>
+          <a class="hero-cta secondary" href="#calculator-groups">Browse all calculators</a>
+        </div>
+      </div>
+      <aside class="example" aria-label="Attendance calculation example">
+        <p class="example-label">Student example · 75% target</p>
+        <div class="example-line"><strong>40 / 50</strong><span>classes attended</span></div>
+        <div class="example-result"><strong>80%</strong><span>current attendance</span></div>
+        <div class="example-progress" role="meter" aria-label="Example attendance" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80"><span></span></div>
+        <p>Up to 3 safe bunks remain at this target.</p>
+      </aside>
+    </section>
 
+    <section class="quick-stats" aria-label="Application overview">
+      <div class="quick-stat"><strong>15 calculators</strong><span>Everyday and student tasks</span></div>
+      <div class="quick-stat"><strong>4 groups</strong><span>Age and date, time, units, student tools</span></div>
+      <div class="quick-stat"><strong>No account</strong><span>History stays in this browser</span></div>
+    </section>
+
+    <div id="calculator-groups">
+      <section class="group" id="age-date" aria-labelledby="age-date-title">
+        <div class="group-heading"><h2 id="age-date-title">Age and date</h2><span class="group-count">6 calculators</span></div>
+        <div class="cards">
+          <a class="card-link" href="age.html"><strong>Age Calculator</strong><span>Exact age, total days and next birthday</span></a>
+          <a class="card-link" href="age-difference.html"><strong>Age Difference</strong><span>Compare two dates of birth</span></a>
+          <a class="card-link" href="date-difference.html"><strong>Date Difference</strong><span>Days and weeks between two dates</span></a>
+          <a class="card-link" href="add-subtract-date.html"><strong>Add or Subtract Date</strong><span>Move a date by days, weeks, months or years</span></a>
+          <a class="card-link" href="workdays.html"><strong>Workdays Counter</strong><span>Count weekdays in a date range</span></a>
+          <a class="card-link" href="leap-year.html"><strong>Leap Year Checker</strong><span>Check a year or list leap years in a range</span></a>
+        </div>
+      </section>
+
+      <section class="group" id="time-tools" aria-labelledby="time-title">
+        <div class="group-heading"><h2 id="time-title">Time</h2><span class="group-count">3 calculators</span></div>
+        <div class="cards">
+          <a class="card-link" href="time-calculator.html"><strong>Time Calculator</strong><span>Add or subtract HH:MM values</span></a>
+          <a class="card-link" href="hours-worked.html"><strong>Hours Worked</strong><span>Calculate a shift, including overnight hours</span></a>
+          <a class="card-link" href="countdown.html"><strong>Countdown</strong><span>See time remaining until an event</span></a>
+        </div>
+      </section>
+
+      <section class="group" id="unit-tools" aria-labelledby="unit-title">
+        <div class="group-heading"><h2 id="unit-title">Units</h2><span class="group-count">1 calculator · 6 categories</span></div>
+        <div class="cards">
+          <a class="card-link" href="unit-converter.html"><strong>Unit Converter</strong><span>Length, weight, temperature, speed, data size and time</span></a>
+        </div>
+      </section>
+
+      <section class="group" id="student-tools" aria-labelledby="student-title">
+        <div class="group-heading"><h2 id="student-title">Student tools</h2><span class="group-count">5 calculators</span></div>
+        <div class="cards">
+          <a class="card-link" href="attendance.html"><strong>Attendance Calculator</strong><span>Current percentage and classes needed to reach a target</span></a>
+          <a class="card-link" href="bunk-planner.html"><strong>Bunk Planner</strong><span>Project attendance after planned absences</span></a>
+          <a class="card-link" href="percentage.html"><strong>Percentage Calculator</strong><span>Six common percentage operations</span></a>
+          <a class="card-link" href="average.html"><strong>Average Calculator</strong><span>Find the average of a list of numbers</span></a>
+          <a class="card-link" href="cgpa.html"><strong>CGPA to Percentage</strong><span>Use a configurable multiplier</span></a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>Allin1Calc Version 1.0 · Built by Nihal Raj · Java backend, browser-based interface</footer>
+  <script src="app.js"></script>
+</body>
+</html>

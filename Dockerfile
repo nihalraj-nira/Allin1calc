@@ -1,12 +1,10 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Only needed when the project is put on a hosting site (Render, Railway, ...).
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 COPY . .
-RUN javac -d out *.java backend/*.java
-
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY --from=build /app/out ./out
-COPY frontend ./frontend
+RUN javac --release 17 -d out *.java backend/*.java \
+    && useradd --system --no-create-home appuser
+USER appuser
+ENV PORT=8080
 EXPOSE 8080
 CMD ["java", "-cp", "out", "Server"]
-

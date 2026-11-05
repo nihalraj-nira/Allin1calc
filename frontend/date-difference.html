@@ -1,1 +1,47 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Date Difference | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Age and date</div><h1>Date Difference</h1><p>Count the days and weeks between two dates.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/date/difference" data-method="POST"><div class="field"><label for="date1">Start date</label><input id="date1" name="date1" type="date" required></div><div class="field"><label for="date2">End date</label><input id="date2" name="date2" type="date" required></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Date Difference | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Date Difference</h2>
+      <p class="muted">Years, months, days and weeks between two dates.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_start">Start date</label><input id="f_start" name="start" type="date" value=""></div>
+        <div class="field"><label for="f_end">End date</label><input id="f_end" name="end" type="date" value="" data-default="today"></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    Calc.init({
+      async run(v) {
+        const d = await api("/api/date/difference", { start: v.start, end: v.end });
+        return {
+          caption: "Difference",
+          headline: ymd(d),
+          rows: [["Total days", num(d.totalDays, 0)], ["In weeks", `${plural(d.totalWeeks, "week")} and ${plural(d.remainingDays, "day")}`]],
+          note: d.startAfterEnd ? "The start date is after the end date, so the dates were put in order." : "",
+          input: `${dmy(v.start)} to ${dmy(v.end)}`,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

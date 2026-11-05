@@ -1,1 +1,59 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bunk Planner | Allin1Calc</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><header class="topbar"><a class="brand" href="/">Allin<span>1</span>Calc</a><div class="top-actions"><a href="/history.html">History</a><a href="/">All calculators</a><button class="theme-button" id="theme-toggle" type="button">Toggle theme</button></div></header><main class="wrap"><section class="intro"><div class="eyebrow">Student tools</div><h1>Bunk Planner</h1><p>Plan absences using your current attendance and target. The result shows the maximum safe bunks before falling below the target.</p></section><div class="layout"><section class="panel"><form class="calc-form" data-api="/api/attendance" data-method="POST"><div class="field"><label for="total">Total classes held</label><input id="total" name="total" type="number" step="any" required></div><div class="field"><label for="attended">Classes attended</label><input id="attended" name="attended" type="number" step="any" required></div><div class="field"><label for="target">Target percentage</label><input id="target" name="target" type="number" step="any" required></div><button class="primary" type="submit">Calculate</button></form><section class="result" id="result" aria-live="polite" hidden><h2 class="result-title" id="result-title"></h2><p class="result-value" id="result-value"></p><div class="result-actions"><span>Result copied only when you choose</span><button class="copy-button" type="button" id="copy-result" hidden>Copy result</button></div></section></section><aside class="side-note"><h2>About this result</h2><p>Your values are sent to the Java backend for calculation. Recent results are saved in this browser's local storage.</p></aside></div></main><footer>Allin1Calc Version 1.0</footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bunk Planner | Allin1Calc</title>
+  <link rel="icon" type="image/svg+xml" href="brand-mark.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <div class="wrap">
+    <a class="crumb" href="index.html">&larr; All calculators</a>
+    <main class="card">
+      <h2>Bunk Planner</h2>
+      <p class="muted">See what happens to your attendance if you skip some classes.</p>
+      <form id="form" novalidate>
+        <div class="grid">
+        <div class="field"><label for="f_total">Total classes</label><input id="f_total" name="total" type="text" value="50" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_attended">Classes attended</label><input id="f_attended" name="attended" type="text" value="40" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_target">Target attendance (%)</label><input id="f_target" name="target" type="text" value="75" inputmode="decimal" autocomplete="off"><div class="hint">Between 1 and 99</div></div>
+        <div class="field"><label for="f_planMiss">Classes you plan to miss</label><input id="f_planMiss" name="planMiss" type="text" value="2" inputmode="numeric" autocomplete="off"></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="primary">Calculate</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+      </form>
+      <div id="result" aria-live="polite"></div>
+    </main>
+    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    const TONE = { Safe: "ok", Borderline: "warn", Shortage: "bad" };
+    Calc.init({
+      async run(v) {
+        const d = await api("/api/attendance", { total: v.total, attended: v.attended, target: v.target || undefined, planMiss: v.planMiss || "0" });
+        const rows = [["Attended", `${v.attended} of ${v.total} classes`], ["Target", `${d.target}%`]];
+        if (d.classesNeeded > 0) {
+          rows.push(["To reach the target", `Attend the next ${plural(d.classesNeeded, "class")} in a row (then ${d.percentageAfterAttending}%)`]);
+        } else {
+          rows.push(["Safe bunks", `${plural(d.safeBunks, "class")} can still be missed`]);
+        }
+        const res = {
+          caption: "Current attendance",
+          headline: `${d.percentage}%`,
+          badge: { text: d.status, tone: TONE[d.status] || "ok" },
+          rows,
+          input: `${v.attended} of ${v.total}, target ${d.target}%`,
+        };
+        res.table = { head: ["If you miss the next", "Attendance"], rows: d.projections.map((p) => [plural(p.missed, "class"), `${p.percentage}%`]) };
+        res.rows.push(["Your plan", `Miss ${plural(d.plan.missed, "class")} → ${d.plan.percentage}% (${d.plan.meetsTarget ? "still OK" : "below target"})`]);
+        return res;
+      },
+    });
+  </script>
+</body>
+</html>
