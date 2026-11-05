@@ -144,9 +144,10 @@ input::placeholder { color: var(--muted); opacity: .8; }
 dl.rows { display: grid; grid-template-columns: minmax(120px, max-content) minmax(0, 1fr); gap: 7px 18px; margin: 10px 0 0; }
 dl.rows dt { color: var(--muted); }
 dl.rows dd { margin: 0; color: var(--ink); font-weight: 620; overflow-wrap: anywhere; }
-.result table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 14px; }
+.table-scroll { max-height: min(60vh, 520px); margin-top: 14px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; overscroll-behavior: contain; }
+.result table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .result th, .result td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; }
-.result th { color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+.result th { position: sticky; top: 0; z-index: 1; background: var(--surface-soft); color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
 .result .note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
 .result .copy { min-height: 38px; margin-top: 14px; }
 .hist-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -202,3 +203,4 @@ footer { padding: 22px 20px 28px; border-top: 1px solid var(--line); color: var(
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+

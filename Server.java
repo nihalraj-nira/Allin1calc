@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Start it with:   java -cp out Server        then open http://localhost:8080
  */
 public class Server {
+    private static final int MAX_SCHEDULED_CLASSES = 10_000;
 
     private record Response(int status, String json) {
     }
@@ -556,7 +557,7 @@ public class Server {
         }
         List<Object> scheduleProjections = new ArrayList<>();
         if (scheduleInput) {
-            for (int k = 1; k <= Math.min(5, remaining); k++) {
+            for (int k = 1; k <= remaining; k++) {
                 scheduleProjections.add(map("upcoming", k,
                         "attend", Validator.round(attendance.projectedPercentage(attended, total, k, true), 2),
                         "miss", Validator.round(attendance.projectedPercentage(attended, total, k, false), 2)));
@@ -732,3 +733,4 @@ public class Server {
         return m;
     }
 }
+

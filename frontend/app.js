@@ -152,7 +152,7 @@ function showError(message) {
 function showResult(res) {
   const rows = (res.rows || []).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
   const table = res.table
-    ? `<table><thead><tr>${res.table.head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${res.table.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+    ? `<div class="table-scroll" role="region" aria-label="${esc(res.table.label || "Detailed results")}" tabindex="0"><table><thead><tr>${res.table.head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${res.table.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`
     : "";
   $("#result").innerHTML = `<div class="result" tabindex="-1">
     <p class="cap">${esc(res.caption || "Result")}</p>
@@ -162,7 +162,13 @@ function showResult(res) {
     ${res.note ? `<p class="note">${esc(res.note)}</p>` : ""}
     <button type="button" class="ghost copy" id="copyBtn">Copy result</button>
   </div>`;
-  lastCopyText = [res.caption, res.headline + (res.badge ? ` (${res.badge.text})` : ""), ...(res.rows || []).map(([k, v]) => `${k}: ${v}`)].filter(Boolean).join("\n");
+  lastCopyText = [
+    res.caption,
+    res.headline + (res.badge ? ` (${res.badge.text})` : ""),
+    ...(res.rows || []).map(([k, v]) => `${k}: ${v}`),
+    ...(res.table ? [res.table.head.join("\t"), ...res.table.rows.map((row) => row.join("\t"))] : []),
+    res.note || "",
+  ].filter(Boolean).join("\n");
   $("#copyBtn").addEventListener("click", copyResult);
   if (res.live) {
     const target = res.live.target;
@@ -274,3 +280,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initHistoryPage();
   }
 });
+

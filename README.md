@@ -17,7 +17,7 @@ The Percentage Calculator supports six operations: find a percent of a number, f
 
 Other V1 features include input validation, clear error messages, copy result, light and dark themes, responsive pages, and calculation history saved in the current browser with `localStorage`. The bunk planner can show attendance projections for planned absences. No login or database is used.
 
-The Attendance Calculator separates total classes scheduled, classes completed so far, and classes attended. It shows the current percentage and up to five projections for either attending or missing upcoming scheduled classes. The Bunk Planner continues to show its planned-absence calculation.
+The Attendance Calculator separates total classes scheduled, classes completed so far, and classes attended. It shows the current percentage and a projection for every remaining scheduled class, both if all upcoming classes are attended and if all are missed. The detailed table is scrollable and included when copying the result. The schedule is limited to 10,000 classes to keep the detailed output responsive. The Bunk Planner continues to show its planned-absence calculation.
 
 The interface follows the project’s teal-and-amber design and uses a custom calculator mark as the app logo and browser icon. Calculator links, form controls, and result cards share the same visual style across desktop and mobile layouts.
 
@@ -82,7 +82,7 @@ Dates use `yyyy-MM-dd` in the browser fields and text version; times use `HH:MM`
 
 Invalid requests return HTTP 400 with a JSON error message.
 
-For the Attendance Calculator, `POST /api/attendance` accepts `{"scheduled":60,"classesDone":50,"attended":40,"target":75}`. The response includes the current 80% attendance and projections for the next 1–5 scheduled classes, capped by the remaining schedule. The older `total` input remains available to the Bunk Planner.
+For the Attendance Calculator, `POST /api/attendance` accepts `{"scheduled":60,"classesDone":50,"attended":40,"target":75}`. The response includes the current 80% attendance and projections for every remaining scheduled class. The older `total` input remains available to the Bunk Planner.
 
 ## Quality and security
 
@@ -92,7 +92,7 @@ Calculation history stays in the current browser profile. It is not sent to a us
 
 ## Tests and release status
 
-The supplied `tests/AllTests.java` contains 130 plain-Java checks for calculation logic, invalid input, API behavior, security rules, and frontend links. The suite has not been rerun after the recent interface and attendance schedule changes. Real-phone testing also remains pending. A free hosting service may sleep after inactivity. Workdays exclude public holidays, and the CGPA multiplier depends on each college's rule.
+The supplied `tests/AllTests.java` contains 137 plain-Java checks for calculation logic, invalid input, API behavior, security rules, and frontend links. All 137 checks passed in the latest local run. Real-phone testing remains pending. A free hosting service may sleep after inactivity. Workdays exclude public holidays, and the CGPA multiplier depends on each college's rule.
 
 ## Published links
 
@@ -118,3 +118,4 @@ Allin1Calc/
 ## Future scope
 
 V2 ideas are a scientific calculator, statistics, number systems, matrices, equation solving, and geometry. V3 ideas are MySQL/JDBC, user accounts, cloud history, a mobile app, an AI assistant while keeping the calculation engine deterministic, finance and currency tools, and security upgrades. These ideas are not part of V1.
+

@@ -13,10 +13,10 @@
     <a class="crumb" href="index.html">&larr; All calculators</a>
     <main class="card">
       <h2>Attendance Calculator</h2>
-      <p class="muted">Enter the semester schedule and your attendance so far to see your current percentage and upcoming class projections.</p>
+      <p class="muted">Enter your full schedule and attendance so far to see your current percentage and a projection for every class still left.</p>
       <form id="form" novalidate>
         <div class="grid">
-        <div class="field"><label for="f_scheduled">Total classes scheduled</label><input id="f_scheduled" name="scheduled" type="text" value="60" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_scheduled">Total classes scheduled</label><input id="f_scheduled" name="scheduled" type="text" value="60" inputmode="numeric" maxlength="5" autocomplete="off"><div class="hint">Enter 1 to 10,000 classes</div></div>
         <div class="field"><label for="f_classesDone">Total classes done</label><input id="f_classesDone" name="classesDone" type="text" value="50" inputmode="numeric" autocomplete="off"><div class="hint">Classes held so far</div></div>
         <div class="field"><label for="f_attended">Total classes attended</label><input id="f_attended" name="attended" type="text" value="40" inputmode="numeric" autocomplete="off"><div class="hint">Must not exceed classes done</div></div>
         <div class="field"><label for="f_target">Target attendance (%)</label><input id="f_target" name="target" type="text" value="75" inputmode="decimal" autocomplete="off"><div class="hint">Between 1 and 99</div></div>
@@ -28,7 +28,7 @@
       </form>
       <div id="result" aria-live="polite"></div>
     </main>
-    <footer>Built by Nihal Raj &middot; Java backend, HTML frontend</footer>
+    <footer>developed by Nihal RAJ ⚡</footer>
   </div>
   <script src="app.js"></script>
   <script>
@@ -66,12 +66,13 @@
         };
         if (d.scheduleProjections.length) {
           res.table = {
-            head: ["Next classes", "Attend all", "Miss all"],
+          label: "Attendance projection for every remaining scheduled class",
+          head: ["Classes from now", "Attend all", "Miss all"],
             rows: d.scheduleProjections.map((p) => [
               plural(p.upcoming, "class"), `${p.attend}%`, `${p.miss}%`,
             ]),
           };
-          res.note = "Each row assumes you either attend or miss all of the next listed classes.";
+          res.note = "Each row assumes you either attend or miss every class from now through the number shown. The final row covers the full remaining schedule.";
         } else {
           res.note = "No upcoming scheduled classes remain to project.";
         }
@@ -81,3 +82,4 @@
   </script>
 </body>
 </html>
+

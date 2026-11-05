@@ -194,6 +194,9 @@ public class AllTests {
         check("32 of 45, target 75: need 7 classes", att.classesNeeded(32, 45, 75) == 7);
         check("42 of 60, target 75: need 12 classes", att.classesNeeded(42, 60, 75) == 12);
         check("40 of 50, target 75: can miss 3 classes", att.safeBunks(40, 50, 75) == 3);
+        check("Schedule projections calculate the next two classes", near(att.projectedPercentage(40, 50, 2, true), 42.0 / 52 * 100)
+                && near(att.projectedPercentage(40, 50, 2, false), 40.0 / 52 * 100));
+        checkError("Schedule detail is capped at 10,000 classes", () -> att.validateSchedule(10_001, 50, 40));
         check("28 of 30, target 75: can miss 7 classes", att.safeBunks(28, 30, 75) == 7);
         check("Below target means 0 safe bunks", att.safeBunks(32, 45, 75) == 0);
         check("Missing 3 more of 40/50 = 75.47%", Math.abs(att.percentageAfterMissing(40, 50, 3) - 75.47) < 0.01);
@@ -362,6 +365,12 @@ public class AllTests {
         check("Attendance 32/45: 71.11%, Shortage, attend 7", r.has("71.11") && r.has("Shortage") && r.has("\"classesNeeded\":7"));
         r = post(port, "/api/attendance", "{\"total\":50,\"attended\":40,\"planMiss\":2}");
         check("Attendance 40/50: 80%, 3 safe bunks, plan 76.92%", r.has("\"percentage\":80") && r.has("\"safeBunks\":3") && r.has("76.92"));
+        r = post(port, "/api/attendance", "{\"scheduled\":60,\"classesDone\":50,\"attended\":40,\"target\":75}");
+        check("Attendance schedule returns every remaining class projection (10 rows)",
+                r.body().split("\\\"upcoming\\\":").length == 11 && r.has("\"upcoming\":10") && r.has("\"attend\":81.82") && r.has("\"miss\":72.73"));
+        r = post(port, "/api/attendance", "{\"scheduled\":3,\"classesDone\":0,\"attended\":0}");
+        check("Attendance with no completed classes is Not started and projects all three", r.has("\"percentage\":null") && r.has("\"status\":\"Not started\"") && r.has("\"upcoming\":3"));
+        check("Schedule above 10,000 classes is rejected", post(port, "/api/attendance", "{\"scheduled\":10001,\"classesDone\":50,\"attended\":40}").status() == 400);
         r = post(port, "/api/convert", "{\"category\":\"temperature\",\"from\":\"Celsius\",\"to\":\"Fahrenheit\",\"value\":100}");
         check("100 Celsius = 212 Fahrenheit", r.has("\"result\":212"));
         r = post(port, "/api/date/add", "{\"date\":\"2026-01-31\",\"amount\":1,\"unit\":\"months\",\"operation\":\"add\"}");
@@ -501,6 +510,14 @@ public class AllTests {
             }
         }
         check("Every calculator page has its form, app.js and Calc.init", structureOk);
+        boolean footersOk = true;
+        for (String file : files) {
+            if (file.endsWith(".html")) {
+                footersOk &= Files.readString(frontend.resolve(file)).contains("<footer>developed by Nihal RAJ \u26a1</footer>");
+            }
+        }
+        check("Every page uses the requested footer", footersOk);
+        check("Projection table rows are included in Copy result", Files.readString(frontend.resolve("app.js")).contains("res.table.rows.map((row) => row.join(\"\\t\"))"));
         check("Home page links to all 15 calculators", Pattern.compile("class=\"card-link\"").matcher(Files.readString(frontend.resolve("index.html"))).results().count() == 15);
         check("Pages are sent as text/html and scripts as JavaScript", call(port, "GET", "/age.html", null).headers().firstValue("Content-Type").orElse("").startsWith("text/html")
                 && call(port, "GET", "/app.js", null).headers().firstValue("Content-Type").orElse("").startsWith("text/javascript"));
@@ -552,3 +569,4 @@ public class AllTests {
         }
     }
 }
+

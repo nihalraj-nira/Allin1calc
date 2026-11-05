@@ -3,6 +3,7 @@ import java.util.Locale;
 /** Attendance percentage, classes needed and safe bunks. Run it alone with:  java -cp out AttendanceCalculator */
 public class AttendanceCalculator {
     private static final double EPS = 1e-9;
+    private static final int MAX_SCHEDULED_CLASSES = 10_000;
 
     public void validate(int attended, int total) {
         if (attended < 0 || total < 0) {
@@ -20,6 +21,9 @@ public class AttendanceCalculator {
     public void validateSchedule(int scheduled, int classesDone, int attended) {
         if (scheduled < 1) {
             throw Validator.fail("Total scheduled classes must be greater than zero.");
+        }
+        if (scheduled > MAX_SCHEDULED_CLASSES) {
+            throw Validator.fail("Total scheduled classes cannot exceed 10,000.");
         }
         if (classesDone < 0 || attended < 0) {
             throw Validator.fail("Value cannot be negative.");
@@ -168,7 +172,7 @@ public class AttendanceCalculator {
                 }
                 if (choice.equals("1")) {
                     System.out.printf("  Schedule           : %d scheduled, %d done, %d remaining%n", scheduled, total, remaining);
-                    for (int k = 1; k <= Math.min(5, remaining); k++) {
+                    for (int k = 1; k <= remaining; k++) {
                         System.out.printf(Locale.US, "  Next %d class(es)    : attend all %.2f%%  |  miss all %.2f%%%n",
                                 k, calc.projectedPercentage(attended, total, k, true),
                                 calc.projectedPercentage(attended, total, k, false));
@@ -190,3 +194,4 @@ public class AttendanceCalculator {
         }
     }
 }
+
