@@ -66,14 +66,19 @@ Invalid values return HTTP 400 with a JSON `error` message. Request bodies are l
 
 ## Docker hosting
 
-Docker is intended for hosting. Build and deployment are not marked as completed:
+The app is deployed on Render using the Dockerfile. The free service may sleep when idle. A local Docker build was not run because Docker CLI is not installed in the preparation environment.
 
 ```text
 docker build -t allin1calc .
 docker run -p 8080:8080 allin1calc
 ```
 
-GitHub push, Render deployment, Docker build, and testing on a real phone remain pending.
+## Published links
+
+- GitHub: https://github.com/nihalraj-nira/Allin1calc
+- Live app: https://allin1calc.onrender.com
+
+Real-phone testing remains pending.
 
 ## Verification status
 
