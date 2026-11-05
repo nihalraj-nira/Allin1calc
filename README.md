@@ -17,6 +17,8 @@ The Percentage Calculator supports six operations: find a percent of a number, f
 
 Other V1 features include input validation, clear error messages, copy result, light and dark themes, responsive pages, and calculation history saved in the current browser with `localStorage`. The bunk planner can show attendance projections for planned absences. No login or database is used.
 
+The Attendance Calculator separates total classes scheduled, classes completed so far, and classes attended. It shows the current percentage and up to five projections for either attending or missing upcoming scheduled classes. The Bunk Planner continues to show its planned-absence calculation.
+
 The interface follows the project’s teal-and-amber design and uses a custom calculator mark as the app logo and browser icon. Calculator links, form controls, and result cards share the same visual style across desktop and mobile layouts.
 
 ## Technology
@@ -80,6 +82,8 @@ Dates use `yyyy-MM-dd` in the browser fields and text version; times use `HH:MM`
 
 Invalid requests return HTTP 400 with a JSON error message.
 
+For the Attendance Calculator, `POST /api/attendance` accepts `{"scheduled":60,"classesDone":50,"attended":40,"target":75}`. The response includes the current 80% attendance and projections for the next 1–5 scheduled classes, capped by the remaining schedule. The older `total` input remains available to the Bunk Planner.
+
 ## Quality and security
 
 The server limits request bodies to 100 KB and numeric text fields to 40 characters. It validates dates from years 1 to 9999 and rejects invalid ranges and arithmetic overflow. Static serving is restricted to the frontend folder, and path traversal is blocked. Responses include Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, and Referrer-Policy headers. CORS is off by default. API rate limiting defaults to 120 requests per minute per client and can be configured with `RATE_LIMIT_PER_MIN`.
@@ -88,9 +92,14 @@ Calculation history stays in the current browser profile. It is not sent to a us
 
 ## Tests and release status
 
-The supplied `tests/AllTests.java` contains 130 plain-Java checks for calculation logic, invalid input, API behavior, security rules, and frontend links. The project brief records standalone runs for the calculator classes and browser checks for the pages. The current interface and percentage-operation edits have not been rechecked against that suite, so rerun it before release.
+The supplied `tests/AllTests.java` contains 130 plain-Java checks for calculation logic, invalid input, API behavior, security rules, and frontend links. The suite has not been rerun after the recent interface and attendance schedule changes. Real-phone testing also remains pending. A free hosting service may sleep after inactivity. Workdays exclude public holidays, and the CGPA multiplier depends on each college's rule.
 
-The supplied project brief lists GitHub publication, Render deployment, Docker image build, and real-phone testing as pending. Update the project link and hosting status after those steps are completed. A free hosting service may sleep after inactivity. Workdays exclude public holidays, and the CGPA multiplier depends on each college's rule.
+## Published links
+
+- GitHub: https://github.com/nihalraj-nira/Allin1calc
+- Live app: https://allin1calc.onrender.com
+
+Render builds the Docker image during deployment. A local Docker build was not run.
 
 ## Project structure
 

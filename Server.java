@@ -526,23 +526,62 @@ public class Server {
     // ---------- Student tools ----------
 
     private Map<String, Object> attendance(Map<String, Object> b) {
-        int total = whole(b, "total", 1_000_000);
+        boolean scheduleInput = b.containsKey("scheduled") || b.containsKey("classesDone");
+        int scheduled;
+        int total;
         int attended = whole(b, "attended", 1_000_000);
-        double target = b.get("target") == null ? 75 : num(b, "target");
-        int planMiss = b.get("planMiss") == null ? 0 : whole(b, "planMiss", 1_000_000);
-        double pct = attendance.percentage(attended, total);
-        int needed = attendance.classesNeeded(attended, total, target);
-        int safe = attendance.safeBunks(attended, total, target);
-        List<Object> projections = new ArrayList<>();
-        for (int k = 1; k <= 5; k++) {
-            projections.add(map("missed", k, "percentage", Validator.round(attendance.percentageAfterMissing(attended, total, k), 2)));
+        if (scheduleInput) {
+            if (!b.containsKey("scheduled") || !b.containsKey("classesDone")) {
+                throw Validator.fail("Enter both total scheduled classes and classes done.");
+            }
+            scheduled = whole(b, "scheduled", 1_000_000);
+            total = whole(b, "classesDone", 1_000_000);
+            attendance.validateSchedule(scheduled, total, attended);
+        } else {
+            // Keep the original API shape for the bunk planner and existing callers.
+            total = whole(b, "total", 1_000_000);
+            scheduled = total;
+            attendance.validate(attended, total);
         }
-        double planned = attendance.percentageAfterMissing(attended, total, planMiss);
-        Map<String, Object> out = map("percentage", Validator.round(pct, 2), "target", target,
-                "status", attendance.status(pct, target), "classesNeeded", needed, "safeBunks", safe);
-        out.put("percentageAfterAttending", needed > 0 ? Validator.round(attendance.percentageAfterAttending(attended, total, needed), 2) : null);
+        double target = b.get("target") == null ? 75 : num(b, "target");
+        attendance.validateTarget(target);
+        int planMiss = b.get("planMiss") == null ? 0 : whole(b, "planMiss", 1_000_000);
+        int remaining = scheduled - total;
+        boolean started = total > 0;
+        double pct = started ? attendance.percentage(attended, total) : 0;
+        int needed = started ? attendance.classesNeeded(attended, total, target) : 0;
+        int safe = started ? attendance.safeBunks(attended, total, target) : 0;
+        if (scheduleInput) {
+            safe = Math.min(safe, remaining);
+        }
+        List<Object> scheduleProjections = new ArrayList<>();
+        if (scheduleInput) {
+            for (int k = 1; k <= Math.min(5, remaining); k++) {
+                scheduleProjections.add(map("upcoming", k,
+                        "attend", Validator.round(attendance.projectedPercentage(attended, total, k, true), 2),
+                        "miss", Validator.round(attendance.projectedPercentage(attended, total, k, false), 2)));
+            }
+        }
+        List<Object> projections = new ArrayList<>();
+        if (!scheduleInput) {
+            for (int k = 1; k <= 5; k++) {
+                projections.add(map("missed", k, "percentage", Validator.round(attendance.percentageAfterMissing(attended, total, k), 2)));
+            }
+        }
+        Map<String, Object> out = map("percentage", started ? Validator.round(pct, 2) : null,
+                "target", target, "status", started ? attendance.status(pct, target) : "Not started",
+                "classesNeeded", needed, "safeBunks", safe, "scheduled", scheduled,
+                "classesDone", total, "attended", attended, "remaining", remaining);
+        out.put("percentageAfterAttending", started && needed > 0
+                ? Validator.round(attendance.percentageAfterAttending(attended, total, needed), 2) : null);
+        out.put("scheduleProjections", scheduleProjections);
         out.put("projections", projections);
-        out.put("plan", map("missed", planMiss, "percentage", Validator.round(planned, 2), "meetsTarget", planned >= target));
+        if (!scheduleInput) {
+            double planned = attendance.percentageAfterMissing(attended, total, planMiss);
+            out.put("plan", map("missed", planMiss, "percentage", Validator.round(planned, 2), "meetsTarget", planned >= target));
+        } else {
+            out.put("plan", null);
+        }
         return out;
     }
 

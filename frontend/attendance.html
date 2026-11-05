@@ -13,11 +13,12 @@
     <a class="crumb" href="index.html">&larr; All calculators</a>
     <main class="card">
       <h2>Attendance Calculator</h2>
-      <p class="muted">Your attendance percentage, status, and how many classes you need or can miss.</p>
+      <p class="muted">Enter the semester schedule and your attendance so far to see your current percentage and upcoming class projections.</p>
       <form id="form" novalidate>
         <div class="grid">
-        <div class="field"><label for="f_total">Total classes</label><input id="f_total" name="total" type="text" value="50" inputmode="numeric" autocomplete="off"></div>
-        <div class="field"><label for="f_attended">Classes attended</label><input id="f_attended" name="attended" type="text" value="40" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_scheduled">Total classes scheduled</label><input id="f_scheduled" name="scheduled" type="text" value="60" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="f_classesDone">Total classes done</label><input id="f_classesDone" name="classesDone" type="text" value="50" inputmode="numeric" autocomplete="off"><div class="hint">Classes held so far</div></div>
+        <div class="field"><label for="f_attended">Total classes attended</label><input id="f_attended" name="attended" type="text" value="40" inputmode="numeric" autocomplete="off"><div class="hint">Must not exceed classes done</div></div>
         <div class="field"><label for="f_target">Target attendance (%)</label><input id="f_target" name="target" type="text" value="75" inputmode="decimal" autocomplete="off"><div class="hint">Between 1 and 99</div></div>
         </div>
         <div class="btn-row">
@@ -34,20 +35,46 @@
     const TONE = { Safe: "ok", Borderline: "warn", Shortage: "bad" };
     Calc.init({
       async run(v) {
-        const d = await api("/api/attendance", { total: v.total, attended: v.attended, target: v.target || undefined, planMiss: undefined });
-        const rows = [["Attended", `${v.attended} of ${v.total} classes`], ["Target", `${d.target}%`]];
-        if (d.classesNeeded > 0) {
-          rows.push(["To reach the target", `Attend the next ${plural(d.classesNeeded, "class")} in a row (then ${d.percentageAfterAttending}%)`]);
+        const d = await api("/api/attendance", {
+          scheduled: v.scheduled,
+          classesDone: v.classesDone,
+          attended: v.attended,
+          target: v.target || undefined,
+        });
+        const rows = [
+          ["Classes scheduled", plural(d.scheduled, "class")],
+          ["Classes done", plural(d.classesDone, "class")],
+          ["Classes attended", `${d.attended} of ${d.classesDone}`],
+          ["Classes remaining", plural(d.remaining, "class")],
+          ["Target", `${d.target}%`],
+        ];
+        if (d.percentage === null) {
+          rows.push(["Attendance record", "No classes have been completed yet."]);
+        } else if (d.classesNeeded > d.remaining) {
+          rows.push(["To reach the target", `Attend ${plural(d.classesNeeded, "class")} in a row; only ${plural(d.remaining, "class")} remain on this schedule.`]);
+        } else if (d.classesNeeded > 0) {
+          rows.push(["To reach the target", `Attend the next ${plural(d.classesNeeded, "class")} in a row (then ${d.percentageAfterAttending}%).`]);
         } else {
-          rows.push(["Safe bunks", `${plural(d.safeBunks, "class")} can still be missed`]);
+          rows.push(["Safe bunks", `${plural(d.safeBunks, "class")} can still be missed at this target.`]);
         }
         const res = {
-          caption: "Current attendance",
-          headline: `${d.percentage}%`,
-          badge: { text: d.status, tone: TONE[d.status] || "ok" },
+          caption: "Attendance up to now",
+          headline: d.percentage === null ? "Not started" : `${d.percentage}%`,
+          badge: { text: d.status, tone: TONE[d.status] || "warn" },
           rows,
-          input: `${v.attended} of ${v.total}, target ${d.target}%`,
+          input: `${d.attended} attended, ${d.classesDone} done, ${d.scheduled} scheduled, target ${d.target}%`,
         };
+        if (d.scheduleProjections.length) {
+          res.table = {
+            head: ["Next classes", "Attend all", "Miss all"],
+            rows: d.scheduleProjections.map((p) => [
+              plural(p.upcoming, "class"), `${p.attend}%`, `${p.miss}%`,
+            ]),
+          };
+          res.note = "Each row assumes you either attend or miss all of the next listed classes.";
+        } else {
+          res.note = "No upcoming scheduled classes remain to project.";
+        }
         return res;
       },
     });

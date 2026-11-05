@@ -16,6 +16,22 @@ public class AttendanceCalculator {
         }
     }
 
+    /** Validate a semester schedule, completed classes, and attended classes. */
+    public void validateSchedule(int scheduled, int classesDone, int attended) {
+        if (scheduled < 1) {
+            throw Validator.fail("Total scheduled classes must be greater than zero.");
+        }
+        if (classesDone < 0 || attended < 0) {
+            throw Validator.fail("Value cannot be negative.");
+        }
+        if (classesDone > scheduled) {
+            throw Validator.fail("Classes done cannot exceed total scheduled classes.");
+        }
+        if (attended > classesDone) {
+            throw Validator.fail("Attended cannot exceed classes done.");
+        }
+    }
+
     public void validateTarget(double target) {
         if (!(target >= 1 && target <= 99)) {
             throw Validator.fail("Target must be between 1 and 99.");
@@ -59,6 +75,20 @@ public class AttendanceCalculator {
         return (attended + extra) * 100.0 / (total + extra);
     }
 
+    /** Project the percentage after future classes are all attended or all missed. */
+    public double projectedPercentage(int attended, int classesDone, int futureClasses, boolean attendFuture) {
+        if (futureClasses < 1) {
+            throw Validator.fail("Upcoming classes must be greater than zero.");
+        }
+        long scheduled = (long) classesDone + futureClasses;
+        if (scheduled > Integer.MAX_VALUE) {
+            throw Validator.fail("Total scheduled classes is too large.");
+        }
+        validateSchedule((int) scheduled, classesDone, attended);
+        long futureAttended = attendFuture ? futureClasses : 0;
+        return (attended + futureAttended) * 100.0 / (classesDone + (double) futureClasses);
+    }
+
     /** Safe when at least 3 points above the target, borderline when above but closer, shortage when below. */
     public String status(double percentage, double target) {
         if (percentage < target) {
@@ -93,21 +123,56 @@ public class AttendanceCalculator {
                     System.out.println("  Please choose 0, 1 or 2.");
                     continue;
                 }
-                int total = Validator.parseWholeNumber(Validator.ask("Total classes"));
-                int attended = Validator.parseWholeNumber(Validator.ask("Classes attended"));
+                int scheduled;
+                int total;
+                int attended;
+                if (choice.equals("1")) {
+                    scheduled = Validator.parseWholeNumber(Validator.ask("Total classes scheduled"));
+                    total = Validator.parseNonNegativeWhole(Validator.ask("Classes done so far"));
+                    attended = Validator.parseNonNegativeWhole(Validator.ask("Classes attended"));
+                    calc.validateSchedule(scheduled, total, attended);
+                } else {
+                    total = Validator.parseWholeNumber(Validator.ask("Classes completed so far"));
+                    attended = Validator.parseNonNegativeWhole(Validator.ask("Classes attended"));
+                    scheduled = total;
+                    calc.validate(attended, total);
+                }
                 String t = Validator.ask("Target percentage (press Enter for 75)");
                 double target = t.isEmpty() ? 75 : Validator.parseNumber(t);
-                double pct = calc.percentage(attended, total);
-                int needed = calc.classesNeeded(attended, total, target);
-                int safe = calc.safeBunks(attended, total, target);
+                calc.validateTarget(target);
+                int remaining = scheduled - total;
+                boolean started = total > 0;
+                double pct = started ? calc.percentage(attended, total) : 0;
+                int needed = started ? calc.classesNeeded(attended, total, target) : 0;
+                int safe = started ? calc.safeBunks(attended, total, target) : 0;
+                if (choice.equals("1")) {
+                    safe = Math.min(safe, remaining);
+                }
                 System.out.println();
-                System.out.printf(Locale.US, "  Current attendance : %.2f%%  (%d of %d)%n", pct, attended, total);
-                System.out.println("  Status             : " + calc.status(pct, target) + " (target " + Validator.plain(target) + "%)");
-                if (needed > 0) {
-                    System.out.printf(Locale.US, "  To reach target    : attend the next %d classes in a row (then %.2f%%)%n",
-                            needed, calc.percentageAfterAttending(attended, total, needed));
+                if (started) {
+                    System.out.printf(Locale.US, "  Current attendance : %.2f%%  (%d of %d classes done)%n", pct, attended, total);
+                    System.out.println("  Status             : " + calc.status(pct, target) + " (target " + Validator.plain(target) + "%)");
                 } else {
+                    System.out.println("  Current attendance : Not started (no classes completed yet)");
+                    System.out.println("  Status             : Not started");
+                }
+                if (started && needed > 0) {
+                    double after = calc.percentageAfterAttending(attended, total, needed);
+                    if (choice.equals("1") && needed > remaining) {
+                        System.out.printf("  To reach target    : attend %d classes in a row; only %d remain on this schedule%n", needed, remaining);
+                    } else {
+                        System.out.printf(Locale.US, "  To reach target    : attend the next %d classes in a row (then %.2f%%)%n", needed, after);
+                    }
+                } else if (started) {
                     System.out.println("  Safe bunks         : " + safe + (safe == 1 ? " class" : " classes") + " can still be missed");
+                }
+                if (choice.equals("1")) {
+                    System.out.printf("  Schedule           : %d scheduled, %d done, %d remaining%n", scheduled, total, remaining);
+                    for (int k = 1; k <= Math.min(5, remaining); k++) {
+                        System.out.printf(Locale.US, "  Next %d class(es)    : attend all %.2f%%  |  miss all %.2f%%%n",
+                                k, calc.projectedPercentage(attended, total, k, true),
+                                calc.projectedPercentage(attended, total, k, false));
+                    }
                 }
                 if (choice.equals("2")) {
                     int plan = Validator.parseNonNegativeWhole(Validator.ask("How many classes do you plan to miss"));
